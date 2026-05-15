@@ -1,0 +1,442 @@
+{
+  "info": {
+    "name": "Review Topper API",
+    "description": "Multi-tenant review growth SaaS — Spring Boot backend.\n\nVariables:\n- `baseUrl` — e.g. http://localhost:8080\n- `token` — JWT from Login (paste Bearer value only)\n- `workspaceId`, `workspaceSlug`, `planId`, `labelId`, `templateId` — path placeholders",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    { "key": "baseUrl", "value": "http://localhost:8080" },
+    { "key": "token", "value": "" },
+    { "key": "workspaceId", "value": "1" },
+    { "key": "workspaceSlug", "value": "demo-wellness-co" },
+    { "key": "planId", "value": "1" },
+    { "key": "labelId", "value": "1" },
+    { "key": "templateId", "value": "1" }
+  ],
+  "item": [
+    {
+      "name": "Auth",
+      "description": "Most routes are public; `/me` and `/change-password` require JWT.",
+      "item": [
+        {
+          "name": "Register — create USER + starter subscription",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Jane Owner\",\n  \"email\": \"jane@example.com\",\n  \"phone\": \"+15555550100\",\n  \"password\": \"SecurePass123\"\n}"
+            },
+            "url": "{{baseUrl}}/api/auth/register",
+            "description": "Creates account, assigns Starter plan subscription. Returns JWT — save to `token` variable."
+          }
+        },
+        {
+          "name": "Login — JWT",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"jane@example.com\",\n  \"password\": \"SecurePass123\"\n}"
+            },
+            "url": "{{baseUrl}}/api/auth/login",
+            "description": "Returns JWT (`token`, `userId`, `email`, `role`). Copy `token` into collection variable."
+          }
+        },
+        {
+          "name": "Forgot password — issue reset token (hashed server-side)",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"jane@example.com\"\n}"
+            },
+            "url": "{{baseUrl}}/api/auth/forgot-password",
+            "description": "Generic message always; plaintext reset token only if `review-topper.auth.expose-reset-token-in-response` / env EXPOSE_RESET_TOKEN is true."
+          }
+        },
+        {
+          "name": "Reset password — consume token",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"resetToken\": \"paste-plain-token\",\n  \"newPassword\": \"NewSecurePass123\"\n}"
+            },
+            "url": "{{baseUrl}}/api/auth/reset-password",
+            "description": "204 No Content on success."
+          }
+        },
+        {
+          "name": "Me — current profile [JWT]",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": "{{baseUrl}}/api/auth/me",
+            "description": "Returns id, name, email, phone, role, verified."
+          }
+        },
+        {
+          "name": "Change password [JWT]",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"currentPassword\": \"SecurePass123\",\n  \"newPassword\": \"AnotherPass456\"\n}"
+            },
+            "url": "{{baseUrl}}/api/auth/change-password",
+            "description": "204 No Content on success."
+          }
+        }
+      ]
+    },
+    {
+      "name": "Public (guest)",
+      "description": "No Authorization header.",
+      "item": [
+        {
+          "name": "Landing payload — track visit + labels + WhatsApp link",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/api/public/{{workspaceSlug}}?locale=en",
+            "description": "Increments landing analytics; returns workspace branding, merged labels, whatsappDeepLink. SPA route remains /r/{slug} on the frontend."
+          }
+        },
+        {
+          "name": "Visitor feedback submitted? (DB)",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/api/public/{{workspaceSlug}}/visitor-feedback-status?visitorSubmissionKey=00000000-0000-4000-8000-000000000001",
+            "description": "Returns { submitted: true|false } for workspace + visitorSubmissionKey (same key the SPA sends on POST /api/feedback)."
+          }
+        },
+        {
+          "name": "Redirect to Google review — track redirect",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/redirect/{{workspaceSlug}}",
+            "description": "302 to workspace google_review_link if configured; records redirect interaction."
+          }
+        }
+      ]
+    },
+    {
+      "name": "Feedback",
+      "description": "Public POST.",
+      "item": [
+        {
+          "name": "Submit feedback",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"workspaceSlug\": \"{{workspaceSlug}}\",\n  \"message\": \"Wait time was longer than expected.\",\n  \"sentiment\": \"NEGATIVE\",\n  \"visitorSubmissionKey\": \"00000000-0000-4000-8000-000000000001\"\n}"
+            },
+            "url": "{{baseUrl}}/api/feedback",
+            "description": "sentiment: POSITIVE | NEUTRAL | NEGATIVE. Creates Feedback + interaction row."
+          }
+        }
+      ]
+    },
+    {
+      "name": "Subscription plans (catalog)",
+      "item": [
+        {
+          "name": "List active plans",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/api/subscription-plans",
+            "description": "Public; active plans only, ordered by price."
+          }
+        }
+      ]
+    },
+    {
+      "name": "Workspaces [JWT USER]",
+      "description": "Owner-scoped; Bearer token required.",
+      "item": [
+        {
+          "name": "List my workspaces",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": "{{baseUrl}}/api/workspaces",
+            "description": "All workspaces owned by authenticated user."
+          }
+        },
+        {
+          "name": "Create workspace",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"slug\": \"optional-lowercase-slug\",\n  \"name\": \"My Business\",\n  \"businessType\": \"RESTAURANT\",\n  \"googleReviewLink\": \"https://maps.google.com/?cid=...\",\n  \"phone\": \"+15555550101\"\n}"
+            },
+            "url": "{{baseUrl}}/api/workspaces",
+            "description": "Requires valid JWT: set collection variable `token` after Login/Register (Bearer {{token}}). Without it you get 401. Starter plan allows 1 workspace — a second create returns 422 with `error: BUSINESS_RULE` and a plan-limit message. slug: lowercase letters, digits, hyphens only (e.g. abc)."
+          }
+        },
+        {
+          "name": "Get workspace by id",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": "{{baseUrl}}/api/workspaces/{{workspaceId}}",
+            "description": "403 if not owner."
+          }
+        },
+        {
+          "name": "Update workspace",
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"slug\": \"my-new-slug\",\n  \"name\": \"Updated Name\",\n  \"businessType\": \"SALON\",\n  \"googleReviewLink\": \"https://maps.google.com/?cid=...\",\n  \"phone\": \"+15555550102\"\n}"
+            },
+            "url": "{{baseUrl}}/api/workspaces/{{workspaceId}}",
+            "description": "All fields optional (partial-style merge): omit or null unused fields per client convention."
+          }
+        },
+        {
+          "name": "Logo metadata — set logo URL",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"logoUrl\": \"https://cdn.example.com/logo.png\"\n}"
+            },
+            "url": "{{baseUrl}}/api/workspaces/{{workspaceId}}/logo-metadata",
+            "description": "Stores hosted URL (no multipart upload in API)."
+          }
+        },
+        {
+          "name": "Patch theme",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"primaryColor\": \"#6366f1\",\n  \"secondaryColor\": \"#64748b\",\n  \"accentColor\": \"#0ea5e9\",\n  \"darkModeEnabled\": false,\n  \"logoPosition\": \"TOP_CENTER\",\n  \"buttonStyle\": \"ROUNDED\"\n}"
+            },
+            "url": "{{baseUrl}}/api/workspaces/{{workspaceId}}/theme",
+            "description": "logoPosition: TOP_LEFT | TOP_CENTER | INLINE_HEADER. buttonStyle: ROUNDED | SQUARE | PILL | SOFT. Partial patch — send only fields to change."
+          }
+        },
+        {
+          "name": "Analytics aggregate",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": "{{baseUrl}}/api/workspaces/{{workspaceId}}/analytics?days=30",
+            "description": "Query param days default 30 (max 366 server-side). Returns visits, sentiments, conversion %, dailyTrend."
+          }
+        },
+        {
+          "name": "QR code PNG",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": "{{baseUrl}}/api/workspaces/{{workspaceId}}/qr.png?size=640",
+            "description": "Binary PNG; size 128–2048. QR encodes public landing URL."
+          }
+        },
+        {
+          "name": "WhatsApp deep link",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": "{{baseUrl}}/api/workspaces/{{workspaceId}}/whatsapp-link",
+            "description": "JSON `{ \"deepLink\": \"https://wa.me/?text=...\" }` from DB template."
+          }
+        }
+      ]
+    },
+    {
+      "name": "Admin — Subscription plans [JWT ADMIN]",
+      "description": "Requires role ADMIN.",
+      "item": [
+        {
+          "name": "List all plans (inc. inactive)",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": "{{baseUrl}}/api/admin/subscription-plans",
+            "description": "Admin catalog view."
+          }
+        },
+        {
+          "name": "Create plan",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Pro\",\n  \"durationType\": \"MONTHLY\",\n  \"maxWorkspaces\": 10,\n  \"price\": 99.00,\n  \"featuresJson\": \"{\\\"tier\\\":\\\"pro\\\",\\\"prioritySupport\\\":true}\",\n  \"active\": true\n}"
+            },
+            "url": "{{baseUrl}}/api/admin/subscription-plans",
+            "description": "durationType: MONTHLY | YEARLY. featuresJson must be valid JSON string."
+          }
+        },
+        {
+          "name": "Replace plan",
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Pro\",\n  \"durationType\": \"MONTHLY\",\n  \"maxWorkspaces\": 12,\n  \"price\": 89.00,\n  \"featuresJson\": \"{\\\"tier\\\":\\\"pro\\\"}\",\n  \"active\": true\n}"
+            },
+            "url": "{{baseUrl}}/api/admin/subscription-plans/{{planId}}",
+            "description": "Full replace semantics per service implementation."
+          }
+        },
+        {
+          "name": "Toggle plan active",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"active\": false\n}"
+            },
+            "url": "{{baseUrl}}/api/admin/subscription-plans/{{planId}}/active",
+            "description": "Soft-hide plan from public `/api/subscription-plans` when active=false."
+          }
+        }
+      ]
+    },
+    {
+      "name": "Admin — Dynamic labels [JWT ADMIN]",
+      "item": [
+        {
+          "name": "List labels",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": "{{baseUrl}}/api/admin/dynamic-labels",
+            "description": "Global + workspace-scoped rows."
+          }
+        },
+        {
+          "name": "Create label",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"workspaceId\": null,\n  \"labelKey\": \"cta_primary_review\",\n  \"labelValue\": \"Tell us how we did\",\n  \"category\": \"cta\",\n  \"locale\": \"en\"\n}"
+            },
+            "url": "{{baseUrl}}/api/admin/dynamic-labels",
+            "description": "workspaceId null = global override bucket."
+          }
+        },
+        {
+          "name": "Replace label",
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"workspaceId\": null,\n  \"labelKey\": \"cta_primary_review\",\n  \"labelValue\": \"Share your experience\",\n  \"category\": \"cta\",\n  \"locale\": \"en\"\n}"
+            },
+            "url": "{{baseUrl}}/api/admin/dynamic-labels/{{labelId}}",
+            "description": "Updates existing label row."
+          }
+        },
+        {
+          "name": "Delete label",
+          "request": {
+            "method": "DELETE",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": "{{baseUrl}}/api/admin/dynamic-labels/{{labelId}}",
+            "description": "204 No Content."
+          }
+        }
+      ]
+    },
+    {
+      "name": "Admin — WhatsApp templates [JWT ADMIN]",
+      "item": [
+        {
+          "name": "List templates",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": "{{baseUrl}}/api/admin/whatsapp-templates",
+            "description": "Editable message bodies with placeholders."
+          }
+        },
+        {
+          "name": "Create template",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"templateKey\": \"review_invite\",\n  \"workspaceId\": null,\n  \"messageTemplate\": \"Hi! Loved {{business_name}}? Review: {{review_link}} Page: {{public_landing_url}}\",\n  \"active\": true\n}"
+            },
+            "url": "{{baseUrl}}/api/admin/whatsapp-templates",
+            "description": "Placeholders: {{business_name}}, {{workspace_slug}}, {{review_link}}, {{public_landing_url}}, {{review_redirect_url}}"
+          }
+        },
+        {
+          "name": "Replace template",
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"templateKey\": \"review_invite\",\n  \"workspaceId\": null,\n  \"messageTemplate\": \"Updated template…\",\n  \"active\": true\n}"
+            },
+            "url": "{{baseUrl}}/api/admin/whatsapp-templates/{{templateId}}",
+            "description": "Updates template row."
+          }
+        }
+      ]
+    }
+  ]
+}
