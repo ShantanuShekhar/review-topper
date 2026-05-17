@@ -1,5 +1,0 @@
-# Activate with: SPRING_PROFILES_ACTIVE=dev
-# Surfaces reset tokens in forgot-password responses for local end-to-end testing (never enable in production).
-review-topper:
-  auth:
-    expose-reset-token-in-response: true

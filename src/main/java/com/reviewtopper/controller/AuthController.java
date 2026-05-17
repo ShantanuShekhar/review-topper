@@ -26,39 +26,44 @@ import org.springframework.web.bind.annotation.RestController;
 @RequiredArgsConstructor
 public class AuthController {
 
-    private final AuthService authService;
+	private final AuthService authService;
 
-    @PostMapping("/register")
-    public ResponseEntity<JwtResponse> register(@Valid @RequestBody RegisterRequest request) {
-        return ResponseEntity.status(HttpStatus.CREATED).body(authService.register(request));
-    }
+	@GetMapping("/test")
+	public String me() {
+		return "Latest Code..";
+	}
 
-    @PostMapping("/login")
-    public JwtResponse login(@Valid @RequestBody LoginRequest request) {
-        return authService.login(request);
-    }
+	@PostMapping("/register")
+	public ResponseEntity<JwtResponse> register(@Valid @RequestBody RegisterRequest request) {
+		return ResponseEntity.status(HttpStatus.CREATED).body(authService.register(request));
+	}
 
-    @PostMapping("/forgot-password")
-    public ForgotPasswordResponse forgot(@Valid @RequestBody ForgotPasswordRequest request) {
-        return authService.forgotPassword(request);
-    }
+	@PostMapping("/login")
+	public JwtResponse login(@Valid @RequestBody LoginRequest request) {
+		return authService.login(request);
+	}
 
-    @PostMapping("/reset-password")
-    public ResponseEntity<Void> reset(@Valid @RequestBody ResetPasswordRequest request) {
-        authService.resetPassword(request);
-        return ResponseEntity.noContent().build();
-    }
+	@PostMapping("/forgot-password")
+	public ForgotPasswordResponse forgot(@Valid @RequestBody ForgotPasswordRequest request) {
+		return authService.forgotPassword(request);
+	}
 
-    @GetMapping("/me")
-    public UserProfileResponse me(@AuthenticationPrincipal SecurityUserPrincipal principal) {
-        return authService.getProfile(principal.getUsername());
-    }
+	@PostMapping("/reset-password")
+	public ResponseEntity<Void> reset(@Valid @RequestBody ResetPasswordRequest request) {
+		authService.resetPassword(request);
+		return ResponseEntity.noContent().build();
+	}
 
-    @PostMapping("/change-password")
-    public ResponseEntity<Void> changePassword(
-            @AuthenticationPrincipal SecurityUserPrincipal principal,
-            @Valid @RequestBody ChangePasswordRequest request) {
-        authService.changePassword(principal.getUsername(), request);
-        return ResponseEntity.noContent().build();
-    }
+	@GetMapping("/me")
+	public UserProfileResponse me(@AuthenticationPrincipal SecurityUserPrincipal principal) {
+		return authService.getProfile(principal.getUsername());
+	}
+
+	@PostMapping("/change-password")
+	public ResponseEntity<Void> changePassword(@AuthenticationPrincipal SecurityUserPrincipal principal,
+			@Valid @RequestBody ChangePasswordRequest request) {
+		authService.changePassword(principal.getUsername(), request);
+		return ResponseEntity.noContent().build();
+	}
+
 }

@@ -62,7 +62,7 @@ public class Workspace {
     private User owner;
 
     @JdbcTypeCode(SqlTypes.JSON)
-    @Column(name = "theme_config", nullable = false)
+    @Column(name = "theme_config", nullable = false, columnDefinition = "LONGTEXT")
     private ThemeConfiguration themeConfig;
 
     @Enumerated(EnumType.STRING)

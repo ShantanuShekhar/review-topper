@@ -1,11 +1,11 @@
 {
   "info": {
     "name": "Review Topper API",
-    "description": "Multi-tenant review growth SaaS — Spring Boot backend.\n\nVariables:\n- `baseUrl` — e.g. http://localhost:8080\n- `token` — JWT from Login (paste Bearer value only)\n- `workspaceId`, `workspaceSlug`, `planId`, `labelId`, `templateId` — path placeholders",
+    "description": "Multi-tenant review growth SaaS — Spring Boot backend.\n\nVariables:\n- `baseUrl` — e.g. https://api.reviewtopper.me\n- `token` — JWT from Login (paste Bearer value only)\n- `workspaceId`, `workspaceSlug`, `planId`, `labelId`, `templateId` — path placeholders",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
   "variable": [
-    { "key": "baseUrl", "value": "http://localhost:8080" },
+    { "key": "baseUrl", "value": "https://api.reviewtopper.me" },
     { "key": "token", "value": "" },
     { "key": "workspaceId", "value": "1" },
     { "key": "workspaceSlug", "value": "demo-wellness-co" },

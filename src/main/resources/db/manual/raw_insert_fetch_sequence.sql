@@ -1,6 +1,6 @@
 -- =============================================================================
 -- Review Topper — raw INSERT then FETCH queries in dependency-safe sequence
--- Engine: MySQL 8.x / InnoDB (matches Flyway V1 schema)
+-- Engine: MySQL 8.x / MariaDB 10.6+ / InnoDB (matches Liquibase V1 schema; JSON as LONGTEXT strings)
 -- Replace placeholders like :plan_id / literals such as 1L with real IDs after inserts.
 -- Password column must hold a BCrypt hash (Spring BCryptPasswordEncoder), not plain text.
 -- =============================================================================
@@ -24,8 +24,8 @@ INSERT INTO subscription_plans (
     'MONTHLY',
     1,
     0.00,
-    CAST('{"tier":"starter","themeCustomization":true}' AS JSON),
-    1
+    '{"tier":"starter","themeCustomization":true}',
+    b'1'
 );
 
 INSERT INTO subscription_plans (
@@ -40,8 +40,8 @@ INSERT INTO subscription_plans (
     'MONTHLY',
     5,
     49.00,
-    CAST('{"tier":"growth","workspaceLimit":5}' AS JSON),
-    1
+    '{"tier":"growth","workspaceLimit":5}',
+    b'1'
 );
 
 -- Capture plan IDs if needed:
@@ -60,7 +60,7 @@ INSERT INTO users (
     'owner@example.com',
     '+15555550100',
     '$2a$12$REPLACE_WITH_BCRYPT_HASH_OF_PASSWORD',
-    1,
+    b'1',
     'OWNER'
 );
 
@@ -109,7 +109,7 @@ INSERT INTO subscriptions (
     (SELECT id FROM subscription_plans WHERE name = 'Starter' LIMIT 1),
     CURDATE(),
     DATE_ADD(CURDATE(), INTERVAL 50 YEAR),
-    1
+    b'1'
 );
 
 -- A5. workspaces (FK → users.owner_id)
@@ -131,7 +131,7 @@ INSERT INTO workspaces (
     'https://maps.google.com/?cid=REPLACE_REVIEW_LINK',
     '+15555550101',
     @demo_user_id,
-    CAST('{"primaryColor":"#2563eb","secondaryColor":"#64748b","darkModeEnabled":false,"logoPosition":"TOP_CENTER","accentColor":"#0ea5e9"}' AS JSON),
+    '{"primaryColor":"#2563eb","secondaryColor":"#64748b","darkModeEnabled":false,"logoPosition":"TOP_CENTER","accentColor":"#0ea5e9"}',
     'ROUNDED'
 );
 
@@ -147,7 +147,7 @@ INSERT INTO customer_interactions (
     @demo_workspace_id,
     'LANDING_PAGE',
     'VISIT',
-    CAST('{"locale":"en"}' AS JSON)
+    '{"locale":"en"}'
 );
 
 INSERT INTO customer_interactions (
@@ -213,7 +213,7 @@ INSERT INTO whatsapp_message_templates (
     'review_invite',
     NULL,
     'Hi! If you visited {{business_name}}, we''d love a quick review: {{review_link}}\n\nFeedback page: {{public_landing_url}}',
-    1
+    b'1'
 );
 
 -- A9b. whatsapp_message_templates — workspace-specific (optional)
@@ -226,7 +226,7 @@ INSERT INTO whatsapp_message_templates (
     'review_invite',
     @demo_workspace_id,
     'Thanks for choosing {{business_name}} — review us here: {{review_link}}',
-    1
+    b'1'
 );
 
 -- -----------------------------------------------------------------------------

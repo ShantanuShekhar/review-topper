@@ -28,11 +28,11 @@ public class WhatsAppLinkService {
         String reviewLink = workspace.getGoogleReviewLink() != null ? workspace.getGoogleReviewLink() : "";
         String fe = properties.getPublicUrls().getFrontendBaseUrl();
         if (fe == null || fe.isBlank()) {
-            fe = "http://localhost:5173";
+            fe = "https://reviewtopper.me";
         }
         String api = properties.getPublicUrls().getApiBaseUrl();
         if (api == null || api.isBlank()) {
-            api = "http://localhost:8080";
+            api = "https://api.reviewtopper.me";
         }
         String landing = fe.replaceAll("/+$", "") + "/r/" + workspace.getSlug();
         String redirect = api.replaceAll("/+$", "") + "/redirect/" + workspace.getSlug();

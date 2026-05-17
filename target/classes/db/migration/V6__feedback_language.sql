@@ -1,2 +1,0 @@
-ALTER TABLE feedbacks
-    ADD COLUMN language VARCHAR(16) NOT NULL DEFAULT 'ENGLISH' AFTER sentiment;

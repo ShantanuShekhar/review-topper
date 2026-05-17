@@ -54,7 +54,7 @@ public class CustomerInteraction {
     private boolean submitted;
 
     @JdbcTypeCode(SqlTypes.JSON)
-    @Column(name = "metadata_json")
+    @Column(name = "metadata_json", columnDefinition = "LONGTEXT")
     private Map<String, Object> metadataJson;
 
     @Column(name = "created_at", nullable = false, updatable = false)

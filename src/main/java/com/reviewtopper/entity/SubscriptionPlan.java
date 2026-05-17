@@ -49,7 +49,7 @@ public class SubscriptionPlan {
     private BigDecimal price;
 
     @JdbcTypeCode(SqlTypes.JSON)
-    @Column(name = "features_json", nullable = false)
+    @Column(name = "features_json", nullable = false, columnDefinition = "LONGTEXT")
     private String featuresJson;
 
     @Column(nullable = false)

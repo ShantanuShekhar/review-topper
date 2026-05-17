@@ -32,7 +32,7 @@ public class QrCodeService {
     public byte[] generateLandingPageQrPng(Workspace workspace, int pixelSize) {
         String rawBase = properties.getPublicUrls().getFrontendBaseUrl();
         if (rawBase == null || rawBase.isBlank()) {
-            rawBase = "http://localhost:5173";
+            rawBase = "https://reviewtopper.me";
             log.warn("review-topper.public-urls.frontend-base-url is blank; falling back to {}", rawBase);
         }
         String base = rawBase.replaceAll("/+$", "");

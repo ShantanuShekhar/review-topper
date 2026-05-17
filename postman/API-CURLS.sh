@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 # Review Topper API — curl examples (paste into terminal or Postman “Import raw text”)
-# Usage: export BASE_URL=http://localhost:8080 TOKEN=your_jwt_here
+# Usage: export BASE_URL=https://api.reviewtopper.me TOKEN=your_jwt_here
 
-BASE_URL="${BASE_URL:-http://localhost:8080}"
+BASE_URL="${BASE_URL:-https://api.reviewtopper.me}"
 TOKEN="${TOKEN:-}"
 
 hdr_auth=(-H "Authorization: Bearer ${TOKEN}")

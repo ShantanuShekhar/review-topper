@@ -4,6 +4,10 @@ databaseChangeLog:
   - changeSet:
       id: v1-init-schema
       author: reviewtopper
+      # SQL updated for MariaDB (LONGTEXT JSON, b'1' bits) — accept prior checksum from deployed DBs.
+      validCheckSum:
+        - 9:9bc530092b097058f1f5b905cb4f9850
+        - 9:3c1d4dad2a2d6e729087aba8464502f8
       preConditions:
         onFail: MARK_RAN
         not:
@@ -16,9 +20,13 @@ databaseChangeLog:
             stripComments: false
             splitStatements: true
             endDelimiter: ;
+
   - changeSet:
       id: v2-seed-reference-data
       author: reviewtopper
+      validCheckSum:
+        - 9:fa33e0de34805d97ed36f70268b51b46
+        - 9:9e09069d918df1f12d426c872d5fcbc0
       changes:
         - sqlFile:
             path: db/migration/V2__seed_reference_data.sql
@@ -26,9 +34,47 @@ databaseChangeLog:
             stripComments: false
             splitStatements: true
             endDelimiter: ;
+
+  - changeSet:
+      id: v3-rename-user-role-owner
+      author: reviewtopper
+      changes:
+        - sqlFile:
+            path: db/migration/V3__rename_user_role_owner.sql
+            relativeToChangelogFile: false
+            stripComments: false
+            splitStatements: true
+            endDelimiter: ;
+
+  - changeSet:
+      id: v4-workspace-soft-delete
+      author: reviewtopper
+      preConditions:
+        onFail: MARK_RAN
+        not:
+          columnExists:
+            tableName: workspaces
+            columnName: is_active
+      changes:
+        - sqlFile:
+            path: db/migration/V4__workspace_soft_delete.sql
+            relativeToChangelogFile: false
+            stripComments: false
+            splitStatements: true
+            endDelimiter: ;
+
   - changeSet:
       id: v5-workspace-qr-feedback-visitor
       author: reviewtopper
+      validCheckSum:
+        - 9:c281c593a75ab458a7af385c720e0d32
+        - 9:5230c95aa5c7a258b1d29e2b71d22f52
+      preConditions:
+        onFail: MARK_RAN
+        not:
+          columnExists:
+            tableName: workspaces
+            columnName: qr_code_base64
       changes:
         - sqlFile:
             path: db/migration/V5__workspace_qr_and_feedback_visitor.sql
@@ -36,12 +82,41 @@ databaseChangeLog:
             stripComments: false
             splitStatements: true
             endDelimiter: ;
+
   - changeSet:
       id: v6-feedback-language
       author: reviewtopper
+      preConditions:
+        onFail: MARK_RAN
+        not:
+          columnExists:
+            tableName: feedbacks
+            columnName: language
       changes:
         - sqlFile:
             path: db/migration/V6__feedback_language.sql
+            relativeToChangelogFile: false
+            stripComments: false
+            splitStatements: true
+            endDelimiter: ;
+
+  - changeSet:
+      id: v7-json-columns-to-longtext
+      author: reviewtopper
+      preConditions:
+        onFail: MARK_RAN
+        sqlCheck:
+          expectedResult: 1
+          sql: |
+            SELECT COUNT(*)
+            FROM information_schema.COLUMNS
+            WHERE TABLE_SCHEMA = DATABASE()
+              AND TABLE_NAME = 'subscription_plans'
+              AND COLUMN_NAME = 'features_json'
+              AND UPPER(DATA_TYPE) = 'JSON'
+      changes:
+        - sqlFile:
+            path: db/migration/V7__json_columns_to_longtext.sql
             relativeToChangelogFile: false
             stripComments: false
             splitStatements: true

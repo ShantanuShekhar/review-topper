@@ -35,16 +35,16 @@ public class ReviewTopperProperties {
 
     @Data
     public static class Cors {
-        /** Comma-separated origins */
-        private String allowedOrigins = "http://localhost:3000,http://localhost:5173";
+        /** Comma-separated origins, or {@code *} for any origin (with credentials via origin patterns). */
+        private String allowedOrigins = "https://reviewtopper.me,https://www.reviewtopper.me";
     }
 
     @Data
     public static class PublicUrls {
         /** Backend origin — e.g. <code>GET /redirect/{slug}</code> must hit the API host. */
-        private String apiBaseUrl = "http://localhost:8080";
+        private String apiBaseUrl = "https://api.reviewtopper.me";
         /** SPA origin — QR codes and customer-facing <code>/r/{slug}</code> links open here. */
-        private String frontendBaseUrl = "http://localhost:5173";
+        private String frontendBaseUrl = "https://reviewtopper.me";
     }
 
     @Data
