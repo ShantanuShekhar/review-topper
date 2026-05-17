@@ -31,7 +31,7 @@ public class AuthController {
 	@GetMapping("/test")
 	
 	ResponseEntity<String>  me() {
-		return ResponseEntity.status(HttpStatus.OK).body("Latest Code....");
+		return ResponseEntity.status(HttpStatus.OK).body("Hey i am deployed through CI/CD");
 		
 	}
 
