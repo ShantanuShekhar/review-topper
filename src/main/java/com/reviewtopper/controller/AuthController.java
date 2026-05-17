@@ -29,13 +29,15 @@ public class AuthController {
 	private final AuthService authService;
 
 	@GetMapping("/test")
-	public String me() {
-		return "Latest Code....";
+	
+	ResponseEntity<String>  me() {
+		return ResponseEntity.status(HttpStatus.OK).body("Latest Code....");
+		
 	}
 
 	@PostMapping("/register")
 	public ResponseEntity<JwtResponse> register(@Valid @RequestBody RegisterRequest request) {
-		return ResponseEntity.status(HttpStatus.CREATED).body(authService.register(request));
+		return ResponseEntity.status(HttpStatus.OK).body(authService.register(request));
 	}
 
 	@PostMapping("/login")
