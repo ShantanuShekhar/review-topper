@@ -30,7 +30,7 @@ public class AuthController {
 
 	@GetMapping("/test")
 	public String me() {
-		return "Latest Code...";
+		return "Latest Code....";
 	}
 
 	@PostMapping("/register")

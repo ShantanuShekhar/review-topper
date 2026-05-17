@@ -31,5 +31,12 @@ jobs:
         key: ${{ secrets.EC2_KEY }}
         script: |
           cd ~/reviewtopper
+
+          echo "📥 Pull latest images"
           docker compose pull
-          docker compose up -d
+
+          echo "🚀 Restart containers (clean way)"
+          docker compose up -d --remove-orphans
+
+          echo "🧹 Cleanup unused images"
+          docker image prune -f
